@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>AsiaBank — Управление стажёрами</title>
     <style>
         /* ========== БАЗОВЫЕ СТИЛИ ========== */
@@ -228,6 +228,151 @@
             background: #27ae60;
             height: 100%;
             width: 0%;
+        }
+
+        /* ========== МОБИЛЬНАЯ АДАПТАЦИЯ ========== */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+            header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+                padding: 20px 0;
+            }
+            .logout-btn {
+                margin-left: 0;
+            }
+            .main-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .sidebar {
+                width: 100%;
+                padding: 20px;
+            }
+            .content {
+                width: 100%;
+                padding: 20px;
+                overflow-x: auto;
+            }
+            .data-table,
+            .report-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            .data-table th, .data-table td,
+            .report-table th, .report-table td {
+                white-space: nowrap;
+            }
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-cell {
+                flex: auto;
+            }
+            .filter-actions {
+                margin-left: 0;
+                justify-content: flex-end;
+            }
+            .stats {
+                flex-direction: column;
+            }
+            .stat-card {
+                min-width: auto;
+            }
+            .reports-container {
+                flex-direction: column;
+            }
+            .report-block {
+                width: 100%;
+                overflow-x: auto;
+            }
+            .course-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .course-name {
+                width: auto;
+                margin-bottom: 6px;
+            }
+            .course-progress {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .action-buttons {
+                justify-content: center;
+            }
+            .btn {
+                padding: 10px 16px;
+                font-size: 1rem;
+            }
+            .btn-sm {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+            .section-title {
+                font-size: 1.6rem;
+            }
+            .app-description {
+                padding: 15px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .login-box {
+                padding: 25px;
+            }
+            .login-options {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .login-options button {
+                width: 100%;
+            }
+            .nav-menu a {
+                padding: 10px 12px;
+                font-size: 0.95rem;
+            }
+            .data-table th,
+            .data-table td {
+                padding: 8px 10px;
+            }
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .filter-actions {
+                justify-content: stretch;
+            }
+            .filter-actions button {
+                flex: 1;
+            }
+            .modal-actions {
+                flex-direction: column;
+            }
+            .modal-actions button {
+                width: 100%;
+            }
+            .stats .stat-card h3 {
+                font-size: 1.6rem;
+            }
+            header h1 {
+                font-size: 1.5rem;
+            }
+            .subtitle {
+                font-size: 0.9rem;
+            }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
