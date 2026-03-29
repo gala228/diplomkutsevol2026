@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AsiaBank — Управление стажёрами</title>
+    <style>
+        /* ========== БАЗОВЫЕ СТИЛИ ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        #appContainer {
+            width: 100%;
+            max-width: 1400px;
+            margin: 20px;
+            display: none;
+        }
+        
+        #loginOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(145deg, #2c3e50, #4a6491);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            width: 450px;
+            max-width: 90%;
+            text-align: center;
+        }
+        
+        .login-box h2 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        
+        .login-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .login-options button {
+            flex: 1;
+            background: #ecf0f1;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #2c3e50;
+        }
+        
+        .login-options button:hover {
+            background: #d5dbdb;
+        }
+        
+        #adminLoginFields {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        #adminLoginFields input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e0e7ef;
+            border-radius: 50px;
+            font-size: 1rem;
+        }
+        
+        #adminLoginBtn {
+            background: linear-gradient(145deg, #2c3e50, #4a6491);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+        
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+        
+        .role-user .admin-only {
+            display: none !important;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .data-table th {
+            background-color: #2c3e50;
+            color: white;
+            text-align: left;
+            padding: 12px 15px;
+            font-weight: 600;
+        }
+        
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #2c3e50, #4a6491); color: white; padding: 25px 0; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); display: flex; align-items: center; justify-content: space-between; }
+        .subtitle { text-align: center; font-size: 1.1rem; opacity: 0.9; max-width: 800px; margin: 0 auto; }
+        .app-description { background-color: #fff; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); border-left: 5px solid #3498db; }
+        .main-content { display: flex; gap: 30px; flex-wrap: wrap; }
+        .sidebar { flex: 1; min-width: 250px; background-color: white; border-radius: 10px; padding: 25px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); height: fit-content; }
+        .content { flex: 3; min-width: 300px; background-color: white; border-radius: 10px; padding: 25px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+        .nav-menu { list-style: none; }
+        .nav-menu li { margin-bottom: 15px; }
+        .nav-menu a { display: block; padding: 12px 15px; background-color: #f8f9fa; border-radius: 6px; text-decoration: none; color: #2c3e50; font-weight: 500; transition: all 0.3s ease; border-left: 4px solid transparent; }
+        .nav-menu a:hover { background-color: #e9f7fe; border-left: 4px solid #3498db; transform: translateX(5px); }
+        .nav-menu a.active { background-color: #e9f7fe; border-left: 4px solid #3498db; color: #2980b9; }
+        .section-title { color: #2c3e50; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; font-size: 1.8rem; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; display: inline-block; text-decoration: none; font-size: 0.9rem; }
+        .btn-primary { background-color: #3498db; color: white; }
+        .btn-success { background-color: #27ae60; color: white; }
+        .btn-warning { background-color: #f39c12; color: white; }
+        .btn-danger { background-color: #e74c3c; color: white; }
+        .btn-sm { padding: 4px 8px; font-size: 0.8rem; }
+        .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin: 15px 0; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; }
+        .hidden { display: none !important; }
+        .stats { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-top: 30px; }
+        .stat-card { flex: 1; min-width: 200px; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); text-align: center; }
+        .stat-card h3 { color: #2c3e50; font-size: 2rem; margin-bottom: 10px; }
+        .stat-card p { color: #7f8c8d; font-weight: 600; }
+        .filter-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; background: #f0f4f8; padding: 15px; border-radius: 8px; align-items: center; }
+        .filter-cell { flex: 1 1 150px; }
+        .filter-cell input, .filter-cell select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .filter-actions { display: flex; gap: 10px; margin-left: auto; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 600px; max-width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .course-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; flex-wrap: wrap; }
+        .course-name { width: 140px; font-weight: 600; }
+        .course-progress { flex: 1; min-width: 150px; display: flex; align-items: center; gap: 8px; }
+        .progress-value { min-width: 45px; text-align: right; }
+        .settings-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        /* Стили для отчётов – фикс перекрытия */
+        .reports-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        .report-block {
+            flex: 1 1 300px;
+            min-width: 280px;
+            overflow-x: auto;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .report-table th, .report-table td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: left;
+        }
+        .report-table th {
+            background: #f0f4f8;
+            color: #2c3e50;
+        }
+        .progress-bar {
+            width: 100px;
+            display: inline-block;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 10px;
+        }
+        .progress-fill {
+            background: #27ae60;
+            height: 100%;
+            width: 0%;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2><i class="fas fa-user-lock"></i> Вход в систему</h2>
+            <div class="login-options">
+                <button onclick="showUserLogin()"><i class="fas fa-user"></i> Войти как пользователь</button>
+                <button onclick="showAdminLogin()"><i class="fas fa-user-tie"></i> Войти как администратор</button>
+            </div>
+            <div id="adminLoginFields">
+                <input type="text" id="loginUsername" placeholder="Логин администратора" value="Kutsevol">
+                <input type="password" id="loginPassword" placeholder="Пароль">
+                <button id="adminLoginBtn" onclick="adminLogin()"><i class="fas fa-sign-in-alt"></i> Войти</button>
+            </div>
+            <div class="error-message" id="loginError"></div>
+        </div>
+    </div>
+
+    <div id="appContainer">
+        <div class="container">
+            <header>
+                <div><h1>AsiaBank Internship Manager</h1><p class="subtitle">Учёт стажёров, обучение, аттестация и отзывы наставников</p></div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+            </header>
+            
+            <div class="app-description">
+                <h2>О системе</h2>
+                <p>Данная система предназначена для учёта стажёров, их обучения, аттестации и отзывов наставников. Она позволяет эффективно организовать и управлять информацией, минимизируя избыточность и обеспечивая целостность данных.</p>
+            </div>
+            
+            <div class="main-content">
+                <div class="sidebar">
+                    <h3 class="section-title">Навигация</h3>
+                    <ul class="nav-menu">
+                        <li><a href="#trainees" onclick="showSection('trainees')">Стажёры</a></li>
+                        <li><a href="#training" onclick="showSection('training')">Обучение</a></li>
+                        <li><a href="#certification" onclick="showSection('certification')">Аттестация</a></li>
+                        <li><a href="#mentors" onclick="showSection('mentors')">Наставники</a></li>
+                        <li><a href="#reports" onclick="showSection('reports')">Отчёты</a></li>
+                        <li class="admin-only"><a href="#settings" onclick="showSection('settings')">Настройки</a></li>
+                    </ul>
+                    
+                    <div class="stats">
+                        <div class="stat-card">
+                            <h3 id="traineesCount">0</h3>
+                            <p>Стажёров</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="activeTrainings">0</h3>
+                            <p>Активных обучений</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content" id="dynamicContent">
+                    <!-- Стажёры -->
+                    <div id="trainees" class="section">
+                        <h2 class="section-title">Стажёры</h2>
+                        <div class="filter-row" id="filterPanel">
+                            <div class="filter-cell"><input type="text" id="filterId" placeholder="ID"></div>
+                            <div class="filter-cell"><input type="text" id="filterName" placeholder="ФИО"></div>
+                            <div class="filter-cell"><input type="text" id="filterStart" placeholder="Дата начала"></div>
+                            <div class="filter-cell"><input type="text" id="filterMentor" placeholder="Наставник"></div>
+                            <div class="filter-cell"><input type="text" id="filterStatus" placeholder="Статус"></div>
+                            <div class="filter-actions">
+                                <button class="btn btn-sm btn-primary" onclick="applyFilters()">Применить</button>
+                                <button class="btn btn-sm btn-warning" onclick="resetFilters()">Сброс</button>
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead><tr><th>ID</th><th>ФИО</th><th>Дата начала</th><th>Наставник</th><th>Статус</th><th>Действия</th></tr></thead>
+                            <tbody id="traineesTableBody"></tbody>
+                        </table>
+                        <div class="action-buttons admin-only">
+                            <button class="btn btn-success" onclick="showAddForm()">+ Добавить стажёра</button>
+                            <button class="btn btn-primary" onclick="exportToCSV()">Экспорт данных</button>
+                            <button class="btn btn-warning" onclick="toggleFilterPanel()">Фильтры</button>
+                        </div>
+                        <div id="addTraineeForm" class="hidden form-section" style="margin-top:30px;padding:20px;background:#f9f9f9;border-radius:8px;">
+                            <h3>Добавление нового стажёра</h3>
+                            <div class="form-group"><label>ФИО</label><input type="text" id="traineeName"></div>
+                            <div class="form-group"><label>Дата начала</label><input type="date" id="startDate"></div>
+                            <div class="form-group"><label>Наставник</label><select id="mentorSelect"></select></div>
+                            <div class="form-group"><label>Примечания</label><textarea id="traineeNotes"></textarea></div>
+                            <div class="form-group"><label>Статус</label><select id="traineeStatus"><option value="Активен">Активен</option><option value="Аттестация">Аттестация</option><option value="Завершил">Завершил</option></select></div>
+                            <div class="action-buttons"><button class="btn btn-success" onclick="saveNewTrainee()">Сохранить</button><button class="btn btn-danger" onclick="hideAddForm()">Отмена</button></div>
+                        </div>
+                    </div>
+
+                    <!-- Обучение с автоматическим обновлением прогресса -->
+                    <div id="training" class="section hidden">
+                        <h2 class="section-title">Обучение стажёров</h2>
+                        <div id="trainingDynamic"></div>
+                    </div>
+
+                    <!-- Аттестация -->
+                    <div id="certification" class="section hidden">
+                        <h2 class="section-title">Аттестация</h2>
+                        <button class="btn btn-success admin-only" onclick="showAddCertificationForm()">+ Добавить аттестацию</button>
+                        <div id="addCertificationForm" class="hidden" style="margin:20px 0; padding:20px; background:#f9f9f9; border-radius:8px;">
+                            <h3>Новая аттестация</h3>
+                            <div class="form-group"><label>Стажёр</label><select id="certTraineeSelect"></select></div>
+                            <div class="form-group"><label>Тема аттестации</label><input type="text" id="certTheme" placeholder="Например: 'Основы кредитования'"></div>
+                            <div class="form-group"><label>Дата</label><input type="date" id="certDate"></div>
+                            <div class="form-group"><label>Результат</label><select id="certResult"><option value="Сдал">Сдал</option><option value="Не сдал">Не сдал</option><option value="Пересдача">Пересдача</option></select></div>
+                            <button class="btn btn-success" onclick="saveCertification()">Сохранить</button>
+                            <button class="btn btn-danger" onclick="hideAddCertificationForm()">Отмена</button>
+                        </div>
+                        <table class="data-table"><thead><tr><th>Стажёр</th><th>Тема</th><th>Дата</th><th>Результат</th><th>Действия</th></tr></thead><tbody id="certificationTableBody"></tbody></table>
+                    </div>
+
+                    <!-- Наставники -->
+                    <div id="mentors" class="section hidden">
+                        <h2 class="section-title">Наставники</h2>
+                        <button class="btn btn-success admin-only" onclick="showAddMentorForm()">+ Добавить наставника</button>
+                        <div id="addMentorForm" class="hidden" style="margin:20px 0; background:#f9f9f9; padding:15px; border-radius:8px;">
+                            <h3>Новый наставник</h3>
+                            <div class="form-group"><label>Имя</label><input type="text" id="newMentorName"></div>
+                            <div class="form-group"><label>Email</label><input type="email" id="newMentorEmail"></div>
+                            <div class="form-group"><label>Телефон</label><input type="text" id="newMentorPhone"></div>
+                            <button class="btn btn-success" onclick="addMentor()">Сохранить</button>
+                            <button class="btn btn-danger" onclick="hideAddMentorForm()">Отмена</button>
+                        </div>
+                        <table class="data-table"><thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Телефон</th><th>Стажёров</th><th>Действия</th></tr></thead><tbody id="mentorsTableBody"></tbody></table>
+                    </div>
+
+                    <!-- Отчёты с улучшенной вёрсткой -->
+                    <div id="reports" class="section hidden">
+                        <h2 class="section-title">Отчёты</h2>
+                        <div class="reports-container">
+                            <div class="report-block">
+                                <h3>Прогресс стажёров</h3>
+                                <table class="report-table"><thead><tr><th>Стажёр</th><th>Курсы (прогресс)</th><th>Средний %</th><th>Последняя аттестация</th></tr></thead><tbody id="progressReportBody"></tbody></table>
+                            </div>
+                            <div class="report-block">
+                                <h3>Средний балл по курсам</h3>
+                                <table class="report-table"><thead><tr><th>Курс</th><th>Средний %</th></tr></thead><tbody id="coursesAvgBody"></tbody></table>
+                            </div>
+                            <div class="report-block">
+                                <h3>Наставники</h3>
+                                <table class="report-table"><thead><tr><th>Наставник</th><th>Кол-во стажёров</th></tr></thead><tbody id="mentorsStatsBody"></tbody></table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Настройки -->
+                    <div id="settings" class="section hidden admin-only">
+                        <h2 class="section-title">Настройки</h2>
+                        <h3>Управление курсами</h3>
+                        <div id="coursesSettings"></div>
+                        <div style="margin-top:20px;"><input type="text" id="newCourseName" placeholder="Название нового курса"><button class="btn btn-success" onclick="addCourse()">Добавить курс</button></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Футер удалён по требованию -->
+        </div>
+    </div>
+
+    <div id="traineeModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modalTitle">Карточка стажёра</h3>
+            <input type="hidden" id="editId">
+            <div class="form-group"><label>ФИО</label><input type="text" id="editFullName"></div>
+            <div class="form-group"><label>Дата начала</label><input type="date" id="editStartDate"></div>
+            <div class="form-group"><label>Наставник</label><select id="editMentor"></select></div>
+            <div class="form-group"><label>Статус</label><select id="editStatus"><option value="Активен">Активен</option><option value="Аттестация">Аттестация</option><option value="Завершил">Завершил</option></select></div>
+            <div class="form-group"><label>Примечания</label><textarea id="editNotes" rows="3"></textarea></div>
+            <div class="modal-actions"><button class="btn btn-success admin-only" onclick="saveTraineeFromModal()">Сохранить</button><button class="btn btn-danger" onclick="closeModal()">Закрыть</button></div>
+        </div>
+    </div>
+
+<script>
+    // ========== ГЛОБАЛЬНЫЕ ДАННЫЕ ==========
+    let currentRole = null;
+    let mentorsData = [
+        { id: 'm1', name: 'Смирнова Ольга Ивановна', email: 'smirnova@bank.ru', phone: '+7(123)456-78-90' },
+        { id: 'm2', name: 'Козлов Дмитрий Васильевич', email: 'kozlov@bank.ru', phone: '+7(123)456-78-91' },
+        { id: 'm3', name: 'Фёдоров Павел Сергеевич', email: 'fedorov@bank.ru', phone: '+7(123)456-78-92' }
+    ];
+    let coursesList = ['Вклады', 'Кредиты', 'Основные скрипты', 'Ипотека', 'Переводы'];
+    let traineesData = [
+        { id: '001', fullName: 'Иванов Алексей Петрович', startDate: '2023-03-15', mentorId: 'm1', mentor: 'Смирнова Ольга Ивановна', status: 'Активен', notes: '', courses: [{ name: 'Вклады', progress: 80 }, { name: 'Кредиты', progress: 45 }], attestations: [{ theme: 'Вклады', date: '2023-05-20', result: 'Сдал' }] },
+        { id: '002', fullName: 'Петрова Мария Сергеевна', startDate: '2023-03-22', mentorId: 'm2', mentor: 'Козлов Дмитрий Васильевич', status: 'Активен', notes: '', courses: [{ name: 'Основные скрипты', progress: 30 }, { name: 'Ипотека', progress: 10 }], attestations: [] },
+        { id: '003', fullName: 'Сидоров Дмитрий Иванович', startDate: '2023-02-10', mentorId: 'm1', mentor: 'Смирнова Ольга Ивановна', status: 'Аттестация', notes: 'Пересдача по модулю 2', courses: [{ name: 'Кредиты', progress: 100 }, { name: 'Переводы', progress: 75 }], attestations: [{ theme: 'Кредиты', date: '2023-06-01', result: 'Пересдача' }] },
+        { id: '004', fullName: 'Кузнецова Анна Викторовна', startDate: '2023-04-05', mentorId: 'm2', mentor: 'Козлов Дмитрий Васильевич', status: 'Активен', notes: '', courses: [], attestations: [] }
+    ];
+    traineesData.forEach(t => { if (!t.attestations) t.attestations = []; if (!t.courses) t.courses = []; });
+
+    let currentFilters = { id: '', fullName: '', startDate: '', mentor: '', status: '' };
+
+    // ========== АВТОРИЗАЦИЯ ==========
+    function showUserLogin() { currentRole = 'user'; sessionStorage.setItem('currentRole', 'user'); document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; applyRoleToUI(); showSection('trainees'); renderTrainees(); }
+    function showAdminLogin() { document.getElementById('adminLoginFields').style.display = 'block'; }
+    function adminLogin() { const username = document.getElementById('loginUsername').value.trim(); const password = document.getElementById('loginPassword').value.trim(); if (username === 'Kutsevol' && password === '123diplom') { currentRole = 'admin'; sessionStorage.setItem('currentRole', 'admin'); document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; applyRoleToUI(); showSection('trainees'); renderTrainees(); } else { document.getElementById('loginError').innerText = 'Неверный логин или пароль'; } }
+    function logout() { currentRole = null; sessionStorage.removeItem('currentRole'); document.getElementById('loginOverlay').style.display = 'flex'; document.getElementById('appContainer').style.display = 'none'; document.getElementById('adminLoginFields').style.display = 'none'; document.getElementById('loginError').innerText = ''; closeModal(); }
+    function applyRoleToUI() { document.body.classList.remove('role-user', 'role-admin'); document.body.classList.add(currentRole === 'admin' ? 'role-admin' : 'role-user'); }
+    function checkAdmin() { if (currentRole !== 'admin') { alert('Недостаточно прав'); return false; } return true; }
+
+    function formatDateForDisplay(dateStr) { if (!dateStr) return ''; const [y,m,d] = dateStr.split('-'); return `${d}.${m}.${y}`; }
+    function shortName(fullName) { if (!fullName) return ''; let parts = fullName.split(' '); if (parts.length >= 2) return parts[0] + ' ' + parts[1][0] + '.' + (parts[2] ? parts[2][0] + '.' : ''); return fullName; }
+    function updateCounters() { document.getElementById('traineesCount').innerText = traineesData.length; let totalCourses = traineesData.reduce((sum, t) => sum + (t.courses?.length || 0), 0); document.getElementById('activeTrainings').innerText = totalCourses; }
+
+    // ========== СТАЖЁРЫ ==========
+    function renderTrainees() {
+        const filtered = traineesData.filter(t => (!currentFilters.id || t.id.includes(currentFilters.id)) && (!currentFilters.fullName || t.fullName.toLowerCase().includes(currentFilters.fullName.toLowerCase())) && (!currentFilters.startDate || formatDateForDisplay(t.startDate).includes(currentFilters.startDate)) && (!currentFilters.mentor || (t.mentor && t.mentor.toLowerCase().includes(currentFilters.mentor.toLowerCase()))) && (!currentFilters.status || t.status.toLowerCase().includes(currentFilters.status.toLowerCase())));
+        const tbody = document.getElementById('traineesTableBody');
+        tbody.innerHTML = '';
+        filtered.forEach(t => {
+            const mentorName = t.mentor || (t.mentorId ? mentorsData.find(m=>m.id===t.mentorId)?.name : '');
+            const actions = currentRole === 'admin' ? `<button class="btn btn-primary btn-sm" onclick="openEditModal('${t.id}')">Редакт.</button> <button class="btn btn-danger btn-sm" onclick="deleteTrainee('${t.id}')">Удалить</button>` : '';
+            tbody.innerHTML += `<tr><td>${t.id}</td><td>${t.fullName}</td><td>${formatDateForDisplay(t.startDate)}</td><td>${shortName(mentorName)}</td><td><span style="color: ${t.status === 'Активен' ? '#27ae60' : (t.status === 'Аттестация' ? '#f39c12' : '#3498db')};">${t.status}</span></td><td>${actions}</td></tr>`;
+        });
+        updateCounters();
+    }
+    function applyFilters() { currentFilters = { id: document.getElementById('filterId').value, fullName: document.getElementById('filterName').value, startDate: document.getElementById('filterStart').value, mentor: document.getElementById('filterMentor').value, status: document.getElementById('filterStatus').value }; renderTrainees(); }
+    function resetFilters() { document.getElementById('filterId').value = ''; document.getElementById('filterName').value = ''; document.getElementById('filterStart').value = ''; document.getElementById('filterMentor').value = ''; document.getElementById('filterStatus').value = ''; currentFilters = { id: '', fullName: '', startDate: '', mentor: '', status: '' }; renderTrainees(); }
+    function toggleFilterPanel() { document.getElementById('filterPanel').classList.toggle('hidden'); }
+    function showAddForm() { if (!checkAdmin()) return; const select = document.getElementById('mentorSelect'); select.innerHTML = ''; mentorsData.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.textContent = m.name; select.appendChild(opt); }); document.getElementById('addTraineeForm').classList.remove('hidden'); }
+    function hideAddForm() { document.getElementById('addTraineeForm').classList.add('hidden'); }
+    function saveNewTrainee() {
+        if (!checkAdmin()) return;
+        const name = document.getElementById('traineeName').value.trim();
+        const start = document.getElementById('startDate').value;
+        const mentorId = document.getElementById('mentorSelect').value;
+        const mentorObj = mentorsData.find(m => m.id === mentorId);
+        const notes = document.getElementById('traineeNotes').value.trim();
+        const status = document.getElementById('traineeStatus').value;
+        if (!name || !start) { alert('Заполните ФИО и дату'); return; }
+        const maxId = Math.max(...traineesData.map(t => parseInt(t.id) || 0), 0);
+        const newId = String(maxId + 1).padStart(3, '0');
+        traineesData.push({ id: newId, fullName: name, startDate: start, mentorId: mentorId, mentor: mentorObj ? mentorObj.name : '', status, notes, courses: [], attestations: [] });
+        renderTrainees(); hideAddForm(); document.getElementById('traineeName').value = ''; document.getElementById('startDate').value = ''; document.getElementById('traineeNotes').value = '';
+        renderTrainingTable(); if (!document.getElementById('training').classList.contains('hidden')) renderTrainingTable(); renderCertificationTable(); renderReports();
+    }
+    function deleteTrainee(id) { if (!checkAdmin()) return; if (confirm('Удалить стажёра?')) { traineesData = traineesData.filter(t => t.id !== id); renderTrainees(); renderTrainingTable(); renderCertificationTable(); renderMentorsTable(); renderReports(); } }
+    function openEditModal(id) { const trainee = traineesData.find(t => t.id === id); if (!trainee) return; document.getElementById('editId').value = trainee.id; document.getElementById('editFullName').value = trainee.fullName; document.getElementById('editStartDate').value = trainee.startDate; const mentorSelect = document.getElementById('editMentor'); mentorSelect.innerHTML = ''; mentorsData.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.textContent = m.name; if (trainee.mentorId === m.id) opt.selected = true; mentorSelect.appendChild(opt); }); document.getElementById('editStatus').value = trainee.status; document.getElementById('editNotes').value = trainee.notes || ''; document.getElementById('traineeModal').classList.remove('hidden'); }
+    function closeModal() { document.getElementById('traineeModal').classList.add('hidden'); }
+    function saveTraineeFromModal() { if (!checkAdmin()) return; const id = document.getElementById('editId').value; const trainee = traineesData.find(t => t.id === id); if (trainee) { trainee.fullName = document.getElementById('editFullName').value; trainee.startDate = document.getElementById('editStartDate').value; const mentorId = document.getElementById('editMentor').value; const mentorObj = mentorsData.find(m => m.id === mentorId); trainee.mentorId = mentorId; trainee.mentor = mentorObj ? mentorObj.name : ''; trainee.status = document.getElementById('editStatus').value; trainee.notes = document.getElementById('editNotes').value; renderTrainees(); renderTrainingTable(); renderCertificationTable(); renderMentorsTable(); renderReports(); closeModal(); } }
+    function exportToCSV() { if (traineesData.length === 0) { alert('Нет данных'); return; } const headers = ['ID','ФИО','Дата начала','Наставник','Статус','Примечания','Курсы','Аттестации']; const rows = traineesData.map(t => [t.id, t.fullName, formatDateForDisplay(t.startDate), t.mentor || '', t.status, t.notes || '', t.courses ? t.courses.map(c => `${c.name} (${c.progress}%)`).join('; ') : '', t.attestations ? t.attestations.map(a => `${a.theme} ${a.date} ${a.result}`).join('; ') : '']); let csv = headers.join(';') + '\n'; rows.forEach(r => csv += r.join(';') + '\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); const url = URL.createObjectURL(blob); link.href = url; link.setAttribute('download', 'stazhery.csv'); document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url); }
+
+    // ========== ОБУЧЕНИЕ (автообновление и добавление) ==========
+    function renderTrainingTable() {
+        const container = document.getElementById('trainingDynamic');
+        container.innerHTML = '';
+        traineesData.forEach(trainee => {
+            const card = document.createElement('div');
+            card.style.marginBottom = '25px';
+            card.style.border = '1px solid #e0e7ef';
+            card.style.borderRadius = '8px';
+            card.style.padding = '15px';
+            card.style.backgroundColor = '#fefefe';
+            const totalCourses = trainee.courses.length;
+            const completedCourses = trainee.courses.filter(c => c.progress === 100).length;
+            const percentCompleted = totalCourses ? Math.round((completedCourses / totalCourses) * 100) : 0;
+            let coursesHtml = '';
+            trainee.courses.forEach((course, idx) => {
+                coursesHtml += `
+                    <div class="course-item">
+                        <span class="course-name">${course.name}</span>
+                        <div class="course-progress">
+                            <progress value="${course.progress}" max="100" style="width:100px;"></progress>
+                            <span>${course.progress}%</span>
+                            ${currentRole === 'admin' ? `
+                                <button class="btn btn-sm btn-primary" onclick="changeProgress('${trainee.id}', ${idx}, -10)">-10</button>
+                                <button class="btn btn-sm btn-primary" onclick="changeProgress('${trainee.id}', ${idx}, +10)">+10</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            if (totalCourses === 0) coursesHtml = '<p><em>Курсы не назначены</em></p>';
+            const assignBlock = currentRole === 'admin' ? `
+                <div style="margin-top:10px;">
+                    <select id="courseSelect_${trainee.id}">
+                        ${coursesList.map(c => `<option value="${c}">${c}</option>`).join('')}
+                    </select>
+                    <button class="btn btn-success btn-sm" onclick="assignCourseToTrainee('${trainee.id}')">Назначить курс</button>
+                </div>
+            ` : '';
+            card.innerHTML = `
+                <h4>${trainee.fullName} (${shortName(trainee.mentor || 'Нет наставника')})</h4>
+                <div><strong>Прогресс обучения:</strong> ${percentCompleted}% (выполнено ${completedCourses} из ${totalCourses} курсов)</div>
+                <div class="progress-bar" style="margin: 8px 0;"><div class="progress-fill" style="width: ${percentCompleted}%;"></div></div>
+                <div><strong>Курсы:</strong></div>
+                ${coursesHtml}
+                ${assignBlock}
+            `;
+            container.appendChild(card);
+        });
+        updateCounters();
+    }
+    window.changeProgress = function(traineeId, courseIndex, delta) {
+        if (!checkAdmin()) return;
+        const trainee = traineesData.find(t => t.id === traineeId);
+        if (trainee && trainee.courses[courseIndex]) {
+            let newProgress = trainee.courses[courseIndex].progress + delta;
+            newProgress = Math.min(100, Math.max(0, newProgress));
+            trainee.courses[courseIndex].progress = newProgress;
+            renderTrainingTable();
+            renderReports();
+        }
+    };
+    window.assignCourseToTrainee = function(traineeId) {
+        if (!checkAdmin()) return;
+        const select = document.getElementById(`courseSelect_${traineeId}`);
+        const courseName = select.value;
+        const trainee = traineesData.find(t => t.id === traineeId);
+        if (trainee && !trainee.courses.some(c => c.name === courseName)) {
+            trainee.courses.push({ name: courseName, progress: 0 });
+            renderTrainingTable();
+            renderReports();
+        } else alert('Курс уже назначен');
+    };
+
+    // ========== АТТЕСТАЦИЯ ==========
+    function showAddCertificationForm() { if (!checkAdmin()) return; const select = document.getElementById('certTraineeSelect'); select.innerHTML = ''; traineesData.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; opt.textContent = t.fullName; select.appendChild(opt); }); document.getElementById('certDate').value = new Date().toISOString().split('T')[0]; document.getElementById('addCertificationForm').classList.remove('hidden'); }
+    function hideAddCertificationForm() { document.getElementById('addCertificationForm').classList.add('hidden'); }
+    function saveCertification() { if (!checkAdmin()) return; const traineeId = document.getElementById('certTraineeSelect').value; const theme = document.getElementById('certTheme').value.trim(); const date = document.getElementById('certDate').value; const result = document.getElementById('certResult').value; if (!traineeId || !theme || !date) { alert('Заполните все поля'); return; } const trainee = traineesData.find(t => t.id === traineeId); if (trainee) { if (!trainee.attestations) trainee.attestations = []; trainee.attestations.push({ theme, date, result }); renderCertificationTable(); hideAddCertificationForm(); document.getElementById('certTheme').value = ''; } }
+    function renderCertificationTable() { const tbody = document.getElementById('certificationTableBody'); tbody.innerHTML = ''; traineesData.forEach(trainee => { if (trainee.attestations?.length) { trainee.attestations.forEach(att => { tbody.innerHTML += `<tr><td>${trainee.fullName}</td><td>${att.theme}</td><td>${formatDateForDisplay(att.date)}</td><td>${att.result}</td><td>${currentRole === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteAttestation('${trainee.id}','${att.theme}','${att.date}')">Удалить</button>` : ''}</td></tr>`; }); } }); }
+    function deleteAttestation(traineeId, theme, date) { if (!checkAdmin()) return; const trainee = traineesData.find(t => t.id === traineeId); if (trainee) { trainee.attestations = trainee.attestations.filter(a => !(a.theme === theme && a.date === date)); renderCertificationTable(); } }
+
+    // ========== НАСТАВНИКИ ==========
+    function renderMentorsTable() { const tbody = document.getElementById('mentorsTableBody'); tbody.innerHTML = ''; mentorsData.forEach(mentor => { const count = traineesData.filter(t => t.mentorId === mentor.id).length; tbody.innerHTML += `<tr><td>${mentor.id}</td><td>${mentor.name}</td><td>${mentor.email || ''}</td><td>${mentor.phone || ''}</td><td>${count}</td><td>${currentRole === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteMentor('${mentor.id}')">Удалить</button>` : ''}</td></tr>`; }); }
+    function showAddMentorForm() { if (!checkAdmin()) return; document.getElementById('addMentorForm').classList.remove('hidden'); }
+    function hideAddMentorForm() { document.getElementById('addMentorForm').classList.add('hidden'); }
+    function addMentor() { if (!checkAdmin()) return; const name = document.getElementById('newMentorName').value.trim(); const email = document.getElementById('newMentorEmail').value.trim(); const phone = document.getElementById('newMentorPhone').value.trim(); if (!name) { alert('Введите имя'); return; } const newId = 'm' + (mentorsData.length + 1); mentorsData.push({ id: newId, name, email, phone }); renderMentorsTable(); hideAddMentorForm(); document.getElementById('newMentorName').value = ''; document.getElementById('newMentorEmail').value = ''; document.getElementById('newMentorPhone').value = ''; }
+    function deleteMentor(id) { if (!checkAdmin()) return; if (confirm('Удалить наставника?')) { mentorsData = mentorsData.filter(m => m.id !== id); traineesData.forEach(t => { if (t.mentorId === id) { t.mentorId = null; t.mentor = ''; } }); renderMentorsTable(); renderTrainees(); renderTrainingTable(); } }
+
+    // ========== ОТЧЁТЫ ==========
+    function renderReports() {
+        const progressBody = document.getElementById('progressReportBody'); progressBody.innerHTML = '';
+        traineesData.forEach(t => { const coursesStr = t.courses?.length ? t.courses.map(c => `${c.name} (${c.progress}%)`).join(', ') : 'нет'; const avg = t.courses?.length ? Math.round(t.courses.reduce((acc, c) => acc + c.progress, 0) / t.courses.length) : 0; const lastAtt = t.attestations?.length ? t.attestations[t.attestations.length-1].theme + ' (' + t.attestations[t.attestations.length-1].result + ')' : 'нет'; progressBody.innerHTML += `<tr><td>${t.fullName}</td><td>${coursesStr}</td><td>${avg}%</td><td>${lastAtt}</td></tr>`; });
+        const courseStats = {}; traineesData.forEach(t => { t.courses?.forEach(c => { if (!courseStats[c.name]) courseStats[c.name] = { sum: 0, count: 0 }; courseStats[c.name].sum += c.progress; courseStats[c.name].count++; }); });
+        const tbodyCourses = document.getElementById('coursesAvgBody'); tbodyCourses.innerHTML = ''; for (let [name, stat] of Object.entries(courseStats)) { const avg = stat.count ? Math.round(stat.sum / stat.count) : 0; tbodyCourses.innerHTML += `<tr><td>${name}</td><td>${avg}%</td></tr>`; }
+        const mentorStats = {}; traineesData.forEach(t => { const mentorName = t.mentor || 'Не назначен'; mentorStats[mentorName] = (mentorStats[mentorName] || 0) + 1; });
+        const tbodyMentors = document.getElementById('mentorsStatsBody'); tbodyMentors.innerHTML = ''; for (let [name, count] of Object.entries(mentorStats)) { tbodyMentors.innerHTML += `<tr><td>${name}</td><td>${count}</td></tr>`; }
+    }
+
+    // ========== НАСТРОЙКИ ==========
+    function renderSettingsCourses() { const container = document.getElementById('coursesSettings'); container.innerHTML = ''; coursesList.forEach((course, index) => { const div = document.createElement('div'); div.className = 'settings-item'; div.innerHTML = `<input type="text" value="${course}" onchange="updateCourseName(${index}, this.value)" style="flex:1; padding:8px;"><button class="btn btn-danger btn-sm" onclick="deleteCourse(${index})">Удалить</button>`; container.appendChild(div); }); }
+    window.updateCourseName = function(index, newName) { if (!checkAdmin()) return; if (newName.trim()) { const oldName = coursesList[index]; coursesList[index] = newName.trim(); traineesData.forEach(t => { if (t.courses) { t.courses.forEach(c => { if (c.name === oldName) c.name = newName.trim(); }); } }); renderSettingsCourses(); renderTrainingTable(); } };
+    window.deleteCourse = function(index) { if (!checkAdmin()) return; const courseName = coursesList[index]; if (confirm(`Удалить курс "${courseName}"?`)) { coursesList.splice(index, 1); traineesData.forEach(t => { t.courses = t.courses.filter(c => c.name !== courseName); }); renderSettingsCourses(); renderTrainingTable(); } };
+    window.addCourse = function() { if (!checkAdmin()) return; const input = document.getElementById('newCourseName'); const name = input.value.trim(); if (!name) { alert('Введите название'); return; } if (coursesList.includes(name)) { alert('Такой курс уже есть'); return; } coursesList.push(name); renderSettingsCourses(); input.value = ''; };
+
+    // ========== НАВИГАЦИЯ ==========
+    function showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+        document.getElementById(sectionId).classList.remove('hidden');
+        document.querySelectorAll('.nav-menu a').forEach(link => { link.classList.remove('active'); if (link.getAttribute('href') === `#${sectionId}`) link.classList.add('active'); });
+        if (sectionId === 'trainees') renderTrainees();
+        else if (sectionId === 'training') renderTrainingTable();
+        else if (sectionId === 'certification') renderCertificationTable();
+        else if (sectionId === 'mentors') renderMentorsTable();
+        else if (sectionId === 'reports') renderReports();
+        else if (sectionId === 'settings') renderSettingsCourses();
+    }
+    window.addEventListener('load', () => { const savedRole = sessionStorage.getItem('currentRole'); if (savedRole) { currentRole = savedRole; document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('appContainer').style.display = 'block'; applyRoleToUI(); showSection('trainees'); } });
+</script>
+</body>
+</html>
